@@ -1,0 +1,41 @@
+.legal-page {
+  min-height: 100vh;
+}
+
+.legal-header {
+  background: var(--gradient-primary);
+  padding: 3rem 0;
+}
+
+.legal-header h1 {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.legal-header p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.legal-content {
+  max-width: 800px;
+  padding: 2rem 1.5rem;
+}
+
+.legal-content section {
+  margin-bottom: 2rem;
+}
+
+.legal-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 0.75rem;
+}
+
+.legal-content p {
+  color: var(--gray-600);
+  line-height: 1.8;
+  margin-bottom: 0.75rem;
+}
