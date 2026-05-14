@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const logger = require('./utils/logger');
 const requestLogger = require('./middleware/requestLogger');
-const { generalLimiter, authLimiter } = require('./middleware/rateLimiter');
+const { generalLimiter, authLimiter, aiLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/AppError');
 const swaggerSpec = require('./swagger');
@@ -41,9 +41,12 @@ app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
 }));
 
-// CORS
+// CORS — supports comma-separated origins in CORS_ORIGIN for multi-domain production deployments
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:3000'];
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -87,7 +90,21 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/gdpr', gdprRoutes);
 app.use('/api/language', languageRoutes);
-app.use('/api/classroom-agents', require('./routes/classroomAgents'));
+app.use('/api/classroom-agents', aiLimiter, require('./routes/classroomAgents'));
+app.use('/api/spaced-repetition', require('./routes/spacedRepetition'));
+app.use('/api/ai', aiLimiter, require('./routes/aiNew'));
+app.use('/api/ai', aiLimiter, require('./routes/aiAdvanced'));
+// Apply pass 5 — backlog: classroom mgmt, voice grading, parent portal
+app.use('/api/classroom', require('./routes/classroomMgmt'));
+app.use('/api/voice-grading', aiLimiter, require('./routes/voiceGrading'));
+app.use('/api/parent-portal', require('./routes/parentPortal'));
+app.use('/api/agentic-tutor', aiLimiter, require('./routes/agenticTutor'));
+app.use('/api/multi-modal-lessons', aiLimiter, require('./routes/multiModalLessons'));
+app.use('/api/peer-review', require('./routes/peerReview'));
+app.use('/api/irt', require('./routes/irtAdaptiveDifficulty'));
+app.use('/api/teacher-dashboard', aiLimiter, require('./routes/teacherDashboard'));
+app.use('/api/badges', require('./routes/badgeIssuance'));
+app.use('/api/lti', require('./routes/ltiBridge'));
 
 // Enhanced health check
 app.get('/api/health', async (req, res) => {
@@ -127,6 +144,14 @@ app.all('/api/*', (req, res) => {
 
 // Global error handler
 app.use(errorHandler);
+
+
+// === Batch 03 Gaps & Frontend Mounts ===
+try {
+  const _batch03 = require('./routes/batch03Gaps');
+  if (typeof authenticateToken === 'function') app.use('/api', authenticateToken, _batch03);
+  else app.use('/api', _batch03);
+} catch (_e) { /* batch03 gap routes optional */ }
 
 app.listen(PORT, () => {
   logger.info(`Server running on http://localhost:${PORT}`);

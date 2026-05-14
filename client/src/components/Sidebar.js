@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiFileText, FiMusic, FiHelpCircle, FiBook, FiTrendingUp, FiLogOut, FiMenu, FiX, FiUser, FiSettings, FiSearch, FiActivity, FiMessageSquare, FiMail, FiShield, FiList, FiSun, FiMoon, FiGlobe } from 'react-icons/fi';
+import { FiHome, FiFileText, FiMusic, FiHelpCircle, FiBook, FiTrendingUp, FiLogOut, FiMenu, FiX, FiUser, FiSettings, FiSearch, FiActivity, FiMessageSquare, FiMail, FiShield, FiList, FiSun, FiMoon, FiGlobe, FiZap } from 'react-icons/fi';
 import { useTheme } from '../contexts/ThemeContext';
 import NotificationBell from './NotificationBell';
 import './Sidebar.css';
@@ -17,7 +17,9 @@ function Sidebar({ user, onLogout }) {
     { to: '/quizzes', icon: <FiHelpCircle />, label: 'Quiz Maker' },
     { to: '/reading', icon: <FiBook />, label: 'Reading Analyzer' },
     { to: '/learning', icon: <FiTrendingUp />, label: 'Learning Paths' },
-    { to: '/language', icon: <FiGlobe />, label: 'Language Immersion' }
+    { to: '/language', icon: <FiGlobe />, label: 'Language Immersion' },
+    { to: '/tutor-chat', icon: <FiMessageSquare />, label: 'AI Tutor Chat' },
+    { to: '/ai-tools', icon: <FiZap />, label: 'AI Tools' }
   ];
 
   const toolLinks = [

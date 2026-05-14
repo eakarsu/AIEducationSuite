@@ -4,11 +4,11 @@ require('dotenv').config();
 class OpenRouterService {
   constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY;
-    this.model = process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5';
+    this.model = process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022';
     this.baseUrl = 'openrouter.ai';
   }
 
-  async makeRequest(messages, systemPrompt = '') {
+  async makeRequest(messages, systemPrompt = '', options = {}) {
     return new Promise((resolve, reject) => {
       const requestBody = JSON.stringify({
         model: this.model,
@@ -16,8 +16,8 @@ class OpenRouterService {
           ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
           ...messages
         ],
-        temperature: 0.7,
-        max_tokens: 10000
+        temperature: options.temperature ?? 0.7,
+        max_tokens: options.max_tokens ?? 10000
       });
 
       const options = {
@@ -90,7 +90,13 @@ Respond with a JSON object in this exact format:
 }`;
 
     try {
-      const response = await this.makeRequest([{ role: 'user', content: userPrompt }], systemPrompt);
+      // Use lower temperature (0.2) for grading consistency — same essay graded
+      // twice should produce nearly identical scores.
+      const response = await this.makeRequest(
+        [{ role: 'user', content: userPrompt }],
+        systemPrompt,
+        { temperature: 0.2 }
+      );
       const content = response.choices[0].message.content;
       return {
         success: true,
@@ -391,21 +397,58 @@ Generate 8-12 vocabulary items and 4-6 exercises appropriate for ${proficiencyLe
     }
   }
 
-  // Parse JSON response, handling markdown code blocks
+  // Parse JSON response with 3-strategy parser: direct → strip-fences → brace-extract
   parseJsonResponse(content) {
-    try {
-      // Remove markdown code blocks if present
-      let jsonStr = content;
-      if (content.includes('```json')) {
-        jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      } else if (content.includes('```')) {
-        jsonStr = content.replace(/```\n?/g, '');
-      }
-      return JSON.parse(jsonStr.trim());
-    } catch (error) {
-      // Return the raw content if JSON parsing fails
-      return { rawContent: content, parseError: 'Could not parse as JSON' };
+    if (!content || typeof content !== 'string') {
+      return { rawContent: content, parseError: 'Empty or invalid content' };
     }
+
+    // Strategy 1: direct parse
+    try {
+      return JSON.parse(content.trim());
+    } catch (_) { /* fall through */ }
+
+    // Strategy 2: strip markdown code fences
+    try {
+      let cleaned = content.trim();
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+      }
+      return JSON.parse(cleaned.trim());
+    } catch (_) { /* fall through */ }
+
+    // Strategy 3: brace/bracket extraction with depth tracking
+    try {
+      const text = content.trim();
+      const startObj = text.indexOf('{');
+      const startArr = text.indexOf('[');
+      let start = -1;
+      let openChar = '';
+      let closeChar = '';
+      if (startObj === -1 && startArr === -1) throw new Error('no JSON delimiter');
+      if (startObj === -1 || (startArr !== -1 && startArr < startObj)) {
+        start = startArr; openChar = '['; closeChar = ']';
+      } else {
+        start = startObj; openChar = '{'; closeChar = '}';
+      }
+      let depth = 0, end = -1, inString = false, escape = false;
+      for (let i = start; i < text.length; i++) {
+        const ch = text[i];
+        if (escape) { escape = false; continue; }
+        if (ch === '\\') { escape = true; continue; }
+        if (ch === '"') { inString = !inString; continue; }
+        if (inString) continue;
+        if (ch === openChar) depth++;
+        else if (ch === closeChar) {
+          depth--;
+          if (depth === 0) { end = i; break; }
+        }
+      }
+      if (end === -1) throw new Error('unbalanced delimiters');
+      return JSON.parse(text.substring(start, end + 1));
+    } catch (_) { /* fall through */ }
+
+    return { rawContent: content, parseError: 'Could not parse as JSON' };
   }
 }
 

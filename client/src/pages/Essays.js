@@ -103,6 +103,26 @@ function Essays() {
     }
   };
 
+  const [originalityResult, setOriginalityResult] = useState(null);
+  const handleOriginalityCheck = async (id) => {
+    setActionLoading(true);
+    setOriginalityResult(null);
+    try {
+      const token = localStorage.getItem('token');
+      const r = await fetch(`/api/ai/essays/${id}/originality`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Originality check failed');
+      setOriginalityResult(data.originality);
+    } catch (err) {
+      setError(err.message || 'Failed originality check');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const loadSampleData = () => {
     setFormData({
       title: 'The Impact of Artificial Intelligence on Modern Education',
@@ -201,6 +221,14 @@ In conclusion, while AI holds tremendous potential to improve educational outcom
                 </button>
                 <button
                   className="btn btn-secondary"
+                  onClick={() => handleOriginalityCheck(selectedEssay.id)}
+                  disabled={actionLoading}
+                  title="Plagiarism + AI-content detection"
+                >
+                  Originality Check
+                </button>
+                <button
+                  className="btn btn-secondary"
                   onClick={() => openEditModal(selectedEssay)}
                 >
                   <FiEdit2 /> Edit
@@ -231,6 +259,31 @@ In conclusion, while AI holds tremendous potential to improve educational outcom
                 <div className="detail-section">
                   <h3>Feedback</h3>
                   <p>{selectedEssay.feedback}</p>
+                </div>
+              )}
+
+              {originalityResult && (
+                <div className="detail-section" style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginTop: 16, background: '#f9fafb' }}>
+                  <h3>Originality Check</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 12 }}>
+                    <div><strong>Originality:</strong> {originalityResult.originality_score}/100</div>
+                    <div><strong>AI-Generated Likelihood:</strong> {originalityResult.likelihood_of_ai_generated}/100</div>
+                    <div><strong>Verdict:</strong> {originalityResult.verdict}</div>
+                    <div><strong>Confidence:</strong> {originalityResult.confidence}/100</div>
+                    <div><strong>Voice Consistency:</strong> {originalityResult.voice_consistency}</div>
+                    <div><strong>Suggested Action:</strong> {originalityResult.teacher_recommended_action}</div>
+                  </div>
+                  {originalityResult.ai_indicators?.length > 0 && (
+                    <div><strong>AI Indicators:</strong>
+                      <ul>{originalityResult.ai_indicators.map((m, i) => <li key={i}>{m}</li>)}</ul>
+                    </div>
+                  )}
+                  {originalityResult.stylistic_red_flags?.length > 0 && (
+                    <div><strong>Red Flags:</strong>
+                      <ul>{originalityResult.stylistic_red_flags.map((m, i) => <li key={i}>{m}</li>)}</ul>
+                    </div>
+                  )}
+                  <p style={{ marginTop: 8 }}>{originalityResult.explanation}</p>
                 </div>
               )}
             </div>

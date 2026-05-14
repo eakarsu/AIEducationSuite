@@ -18,6 +18,8 @@ import Notifications from './pages/Notifications';
 import Feedback from './pages/Feedback';
 import Contact from './pages/Contact';
 import AuditLogs from './pages/AuditLogs';
+import TutorChat from './pages/TutorChat';
+import AITools from './pages/AITools';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
@@ -27,6 +29,8 @@ import Sidebar from './components/Sidebar';
 import Onboarding from './components/Onboarding';
 import './i18n';
 import './App.css';
+
+import Batch03Features from './pages/Batch03Features';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -106,6 +110,7 @@ function App() {
             <a href="#main-content" className="skip-link">Skip to content</a>
             <div id="main-content">
               <Routes>
+          <Route path="/batch03" element={<Batch03Features />} />
                 {/* Public routes */}
                 <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -131,6 +136,8 @@ function App() {
                 <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
                 <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
                 <Route path="/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
+                <Route path="/tutor-chat" element={<ProtectedRoute><TutorChat /></ProtectedRoute>} />
+                <Route path="/ai-tools" element={<ProtectedRoute><AITools /></ProtectedRoute>} />
 
                 {/* Default redirect */}
                 <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
