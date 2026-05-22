@@ -20,7 +20,7 @@ class OpenRouterService {
         max_tokens: options.max_tokens ?? 10000
       });
 
-      const options = {
+      const requestOptions = {
         hostname: this.baseUrl,
         path: '/api/v1/chat/completions',
         method: 'POST',
@@ -32,7 +32,7 @@ class OpenRouterService {
         }
       };
 
-      const req = https.request(options, (res) => {
+      const req = https.request(requestOptions, (res) => {
         let data = '';
 
         res.on('data', (chunk) => {

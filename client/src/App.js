@@ -20,6 +20,7 @@ import Contact from './pages/Contact';
 import AuditLogs from './pages/AuditLogs';
 import TutorChat from './pages/TutorChat';
 import AITools from './pages/AITools';
+import MasteryIntervention from './pages/MasteryIntervention';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
@@ -31,6 +32,11 @@ import './i18n';
 import './App.css';
 
 import Batch03Features from './pages/Batch03Features';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -110,6 +116,10 @@ function App() {
             <a href="#main-content" className="skip-link">Skip to content</a>
             <div id="main-content">
               <Routes>
+        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
           <Route path="/batch03" element={<Batch03Features />} />
                 {/* Public routes */}
                 <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />} />
@@ -138,6 +148,7 @@ function App() {
                 <Route path="/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
                 <Route path="/tutor-chat" element={<ProtectedRoute><TutorChat /></ProtectedRoute>} />
                 <Route path="/ai-tools" element={<ProtectedRoute><AITools /></ProtectedRoute>} />
+                <Route path="/mastery-intervention" element={<ProtectedRoute><MasteryIntervention /></ProtectedRoute>} />
 
                 {/* Default redirect */}
                 <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />

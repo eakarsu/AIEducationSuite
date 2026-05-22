@@ -105,6 +105,7 @@ app.use('/api/irt', require('./routes/irtAdaptiveDifficulty'));
 app.use('/api/teacher-dashboard', aiLimiter, require('./routes/teacherDashboard'));
 app.use('/api/badges', require('./routes/badgeIssuance'));
 app.use('/api/lti', require('./routes/ltiBridge'));
+app.use('/api/mastery-intervention', aiLimiter, require('./routes/masteryIntervention'));
 
 // Enhanced health check
 app.get('/api/health', async (req, res) => {
