@@ -35,6 +35,7 @@ const languageRoutes = require('./routes/language');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.BACKEND_HOST || '127.0.0.1';
 
 // Security headers
 app.use(helmet({
@@ -154,15 +155,15 @@ try {
   else app.use('/api', _batch03);
 } catch (_e) { /* batch03 gap routes optional */ }
 
-app.listen(PORT, () => {
-  logger.info(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  logger.info(`Server running on http://${HOST}:${PORT}`);
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║     AI Education Suite Server                             ║
 ║                                                           ║
-║     Server running on http://localhost:${PORT}              ║
-║     API docs at http://localhost:${PORT}/api-docs           ║
+║     Server running on http://${HOST}:${PORT}              ║
+║     API docs at http://${HOST}:${PORT}/api-docs           ║
 ║                                                           ║
 ║     Features: 6 AI Tools + 35 Platform Features           ║
 ║                                                           ║

@@ -19,6 +19,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+BACKEND_PORT="${BACKEND_PORT:-${PORT:-3001}}"
+FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+BACKEND_HOST="${BACKEND_HOST:-127.0.0.1}"
+FRONTEND_HOST="${FRONTEND_HOST:-127.0.0.1}"
+
 # Function to print colored messages
 print_status() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -38,21 +43,14 @@ print_error() {
 
 # Function to clean up ports
 cleanup_ports() {
-    print_status "Cleaning up ports 3000 and 3001..."
-
-    # Kill processes on port 3000 (React)
-    if lsof -ti:3000 > /dev/null 2>&1; then
-        print_warning "Killing process on port 3000..."
-        kill -9 $(lsof -ti:3000) 2>/dev/null || true
-    fi
-
-    # Kill processes on port 3001 (Express)
-    if lsof -ti:3001 > /dev/null 2>&1; then
-        print_warning "Killing process on port 3001..."
-        kill -9 $(lsof -ti:3001) 2>/dev/null || true
-    fi
-
-    print_success "Ports cleaned up"
+    print_status "Checking ports $FRONTEND_PORT and $BACKEND_PORT..."
+    for port in "$FRONTEND_PORT" "$BACKEND_PORT"; do
+        if lsof -tiTCP:"$port" -sTCP:LISTEN > /dev/null 2>&1; then
+            print_error "Port $port is occupied; refusing to terminate another process."
+            exit 1
+        fi
+    done
+    print_success "Ports are available"
 }
 
 # Function to check if PostgreSQL is running
@@ -60,14 +58,14 @@ check_postgres() {
     print_status "Checking PostgreSQL connection..."
 
     if command -v pg_isready &> /dev/null; then
-        if pg_isready -h localhost -p 5432 > /dev/null 2>&1; then
+        if pg_isready -h "${DB_HOST:-127.0.0.1}" -p "${DB_PORT:-5432}" > /dev/null 2>&1; then
             print_success "PostgreSQL is running"
             return 0
         fi
     fi
 
     # Try to connect anyway
-    if psql -h localhost -U postgres -c '\q' 2>/dev/null; then
+    if psql -h "${DB_HOST:-127.0.0.1}" -p "${DB_PORT:-5432}" -U "${DB_USER:-postgres}" -d postgres -c '\q' 2>/dev/null; then
         print_success "PostgreSQL is running"
         return 0
     fi
@@ -85,40 +83,18 @@ check_env() {
     print_status "Checking .env file..."
 
     if [ ! -f ".env" ]; then
-        print_error ".env file not found!"
-        print_status "Creating default .env file..."
-        cat > .env << 'EOF'
-# Database Configuration
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ai_education_suite
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=ai_education_suite
-DB_USER=postgres
-DB_PASSWORD=postgres
-
-# Server Configuration
-PORT=3001
-NODE_ENV=development
-
-# OpenRouter AI Configuration
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-OPENROUTER_MODEL=anthropic/claude-haiku-4.5
-
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here_change_in_production
-
-# Demo Login Credentials
-DEMO_EMAIL=demo@aieducation.com
-DEMO_PASSWORD=demo123456
-EOF
-        print_warning "Created default .env file. Please update OPENROUTER_API_KEY!"
-    else
-        print_success ".env file exists"
+        print_error ".env file not found; copy the documented example and provide test-safe values before startup."
+        exit 1
     fi
+    print_success ".env file exists"
 
     # Check if OpenRouter API key is set
-    source .env 2>/dev/null || true
-    if [ "$OPENROUTER_API_KEY" == "your_openrouter_api_key_here" ]; then
+    if [ "${SKIP_PROJECT_ENV:-false}" != "true" ]; then
+        set -a
+        source .env
+        set +a
+    fi
+    if [ "${OPENROUTER_API_KEY:-}" == "your_openrouter_api_key_here" ]; then
         print_warning "OPENROUTER_API_KEY is not set! AI features will not work."
         print_warning "Please update your .env file with a valid OpenRouter API key."
     fi
@@ -130,13 +106,13 @@ install_dependencies() {
 
     # Check if node_modules exist
     if [ ! -d "node_modules" ]; then
-        print_status "Installing server dependencies..."
-        npm install
+        print_error "Server dependencies are missing; run the documented bootstrap step first."
+        exit 1
     fi
 
     if [ ! -d "client/node_modules" ]; then
-        print_status "Installing client dependencies..."
-        cd client && npm install && cd ..
+        print_error "Client dependencies are missing; run the documented bootstrap step first."
+        exit 1
     fi
 
     print_success "All dependencies installed"
@@ -144,9 +120,12 @@ install_dependencies() {
 
 # Function to setup database
 setup_database() {
-    print_status "Setting up database..."
-    node server/db/setup.js
-    print_success "Database setup complete"
+    print_status "Checking database..."
+    if ! psql -h "${DB_HOST:-127.0.0.1}" -p "${DB_PORT:-5432}" -U "${DB_USER:-postgres}" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME:-ai_education_suite}'" | grep -q 1; then
+        print_error "Database ${DB_NAME:-ai_education_suite} does not exist; provision an isolated database before startup."
+        exit 1
+    fi
+    print_success "Database is available"
 }
 
 # Function to seed database
@@ -167,15 +146,22 @@ start_app() {
     echo "║     Frontend: http://localhost:3000                       ║"
     echo "║     Backend:  http://localhost:3001                       ║"
     echo "║                                                           ║"
-    echo "║     Demo Login: demo@aieducation.com / demo123456         ║"
-    echo "║                                                           ║"
     echo "║     Press Ctrl+C to stop                                  ║"
     echo "║                                                           ║"
     echo "╚═══════════════════════════════════════════════════════════╝"
     echo ""
 
-    # Start both servers with hot-reload
-    npm start
+    BACKEND_HOST="$BACKEND_HOST" PORT="$BACKEND_PORT" node server/index.js &
+    BACKEND_PID=$!
+    (cd client && exec env BROWSER=none DANGEROUSLY_DISABLE_HOST_CHECK=true HOST="$FRONTEND_HOST" PORT="$FRONTEND_PORT" ./node_modules/.bin/react-scripts start) &
+    FRONTEND_PID=$!
+
+    cleanup_children() {
+        kill -TERM "$BACKEND_PID" "$FRONTEND_PID" 2>/dev/null || true
+        wait "$BACKEND_PID" "$FRONTEND_PID" 2>/dev/null || true
+    }
+    trap cleanup_children EXIT INT TERM
+    wait
 }
 
 # Main execution
@@ -189,7 +175,6 @@ main() {
     check_postgres
     install_dependencies
     setup_database
-    seed_database
     start_app
 }
 
@@ -213,9 +198,9 @@ case "${1:-}" in
         echo "Usage: ./start.sh [option]"
         echo ""
         echo "Options:"
-        echo "  (no option)  Full startup: clean ports, setup DB, seed data, start app"
-        echo "  --clean      Only clean up ports 3000 and 3001"
-        echo "  --setup      Only setup database and install dependencies"
+        echo "  (no option)  Validate configuration/dependencies/database and start app"
+        echo "  --clean      Verify ports 3000 and 3001 are available"
+        echo "  --setup      Verify database and dependencies"
         echo "  --seed       Only seed the database with sample data"
         echo "  --help       Show this help message"
         ;;
