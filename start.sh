@@ -175,6 +175,9 @@ main() {
     check_postgres
     install_dependencies
     setup_database
+    if [ "${ALLOW_DEMO_SEED:-false}" = "true" ]; then
+        seed_database
+    fi
     start_app
 }
 

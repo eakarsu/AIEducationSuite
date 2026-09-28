@@ -77,7 +77,7 @@ function Login({ onLogin }) {
             <div className="login-divider"><span>or</span></div>
 
             <button type="button" className="btn btn-secondary btn-lg login-demo" onClick={fillDemoCredentials}>
-              Fill Demo Credentials
+              Auto Fill Demo Credentials
             </button>
           </form>
 

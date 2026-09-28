@@ -15,7 +15,7 @@ const seedDatabase = async () => {
     const userResult = await pool.query(`
       INSERT INTO users (email, password, name, role, bio, phone, timezone, email_verified, onboarding_completed)
       VALUES ($1, $2, $3, 'student', 'Passionate learner exploring AI-powered education tools.', '+1-555-0100', 'America/New_York', TRUE, TRUE)
-      ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, role = 'student', bio = EXCLUDED.bio, email_verified = TRUE, onboarding_completed = TRUE
+      ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, name = EXCLUDED.name, role = 'student', bio = EXCLUDED.bio, email_verified = TRUE, onboarding_completed = TRUE
       RETURNING id
     `, [process.env.DEMO_EMAIL || 'demo@aieducation.com', hashedPassword, 'Demo User']);
     const userId = userResult.rows[0].id;
