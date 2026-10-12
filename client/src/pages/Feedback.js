@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FiMessageSquare, FiPlus, FiArrowLeft, FiTrash2 } from 'react-icons/fi';
+import { FiMessageSquare, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
+import RecordDialog from '../components/RecordDialog';
 import './FeaturePage.css';
 
 function Feedback() {
@@ -45,35 +46,6 @@ function Feedback() {
   };
 
   if (loading) return <div className="loading-container"><div className="spinner"></div><p>Loading feedback...</p></div>;
-
-  if (selected) {
-    return (
-      <div className="feature-page">
-        <div className="page-header"><div className="container">
-          <button className="btn btn-secondary" onClick={() => setSelected(null)}><FiArrowLeft /> Back</button>
-        </div></div>
-        <div className="container page-container">
-          <div className="detail-view">
-            <div className="detail-header">
-              <div><h1 className="detail-title">{selected.subject}</h1>
-                <div className="detail-meta">
-                  <span className={`badge ${getStatusBadge(selected.status)}`}>{selected.status}</span>
-                  <span className="badge badge-info">{selected.type}</span>
-                  <span>{new Date(selected.created_at).toLocaleString()}</span>
-                </div></div>
-              <div className="detail-actions">
-                <button className="btn btn-danger" onClick={() => handleDelete(selected.id)}><FiTrash2 /> Delete</button>
-              </div>
-            </div>
-            <div className="detail-content">
-              <div className="detail-section"><h3>Message</h3><div className="content-box"><p>{selected.message}</p></div></div>
-              {selected.admin_response && <div className="detail-section"><h3>Admin Response</h3><div className="content-box" style={{borderLeft:'3px solid var(--success)'}}><p>{selected.admin_response}</p></div></div>}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="feature-page">
@@ -123,6 +95,23 @@ function Feedback() {
           </div>
         </form>
       </Modal>
+
+      {selected && (
+        <RecordDialog
+          title={selected.subject || 'Feedback details'}
+          item={selected}
+          fields={[
+            { key: 'subject', label: 'Subject' },
+            { key: 'type', label: 'Type' },
+            { key: 'status', label: 'Status' },
+            { key: 'message', label: 'Message' },
+            { key: 'admin_response', label: 'Admin response' },
+            { key: 'created_at', label: 'Created' },
+          ]}
+          onClose={() => setSelected(null)}
+          onDelete={(row) => handleDelete(row.id)}
+        />
+      )}
     </div>
   );
 }

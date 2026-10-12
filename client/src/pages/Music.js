@@ -1,5 +1,6 @@
+import NativeEducationPresets, { educationExamples } from '../components/NativeEducationPresets';
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiMusic, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiMusic } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import AIResponseDisplay from '../components/AIResponseDisplay';
@@ -110,14 +111,7 @@ function Music() {
     }
   };
 
-  const loadSampleData = () => {
-    setFormData({
-      instrument: 'Piano',
-      skill_level: 'Beginner',
-      topic: 'Basic chord progressions and finger placement for popular songs'
-    });
-    setError('');
-  };
+  const loadSampleData = (index) => { setFormData({ ...educationExamples.Music[index] }); setError(''); };
 
   const openCreateModal = () => {
     setEditingLesson(null);
@@ -300,13 +294,7 @@ function Music() {
         <form onSubmit={editingLesson ? handleUpdate : handleCreate}>
           {error && <div className="alert alert-error">{error}</div>}
 
-          {!editingLesson && (
-            <div style={{ marginBottom: '1rem' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={loadSampleData}>
-                <FiDownload /> Load Sample Data
-              </button>
-            </div>
-          )}
+          <NativeEducationPresets onApply={loadSampleData} disabled={actionLoading} />
 
           <div className="form-group">
             <label className="form-label">Instrument</label>

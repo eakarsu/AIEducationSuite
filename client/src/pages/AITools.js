@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+
+import NativeEducationPresets, { educationExamples } from '../components/NativeEducationPresets';
+import { api } from '../utils/api';
+import FormattedAIReport from "../components/FormattedAIReport";
+import React, { useState, useEffect } from 'react';
 import { FiZap, FiCalendar, FiBarChart2, FiUsers, FiHelpCircle, FiTrendingUp } from 'react-icons/fi';
 import './FeaturePage.css';
 
@@ -34,6 +38,18 @@ async function callAI(path, body) {
 }
 
 function AITools() {
+  const [essays, setEssays] = useState([]);
+  const [paths, setPaths] = useState([]);
+  useEffect(() => {
+    let active = true;
+    Promise.allSettled([api.essays.getAll(), api.learning.getAll()]).then(([essayResult,pathResult]) => {
+      if (!active) return;
+      if (essayResult.status === 'fulfilled') setEssays(Array.isArray(essayResult.value) ? essayResult.value : []);
+      if (pathResult.status === 'fulfilled') setPaths(Array.isArray(pathResult.value) ? pathResult.value : []);
+    });
+    return () => { active = false; };
+  }, []);
+
   const [activeTool, setActiveTool] = useState('essay-improvement');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -46,6 +62,25 @@ function AITools() {
   const [teacherForm, setTeacherForm] = useState({ start: '', end: '' });
   const [quizForm, setQuizForm] = useState({ topic: '', subject: '', difficulty: 'medium', num_questions: 5, source_content: '' });
   const [recForm, setRecForm] = useState({ subject: '', max_recommendations: 5 });
+
+  const applyExample = (index) => {
+    setError(''); setResult(null);
+    const date = (offset) => { const day = new Date(); day.setUTCDate(day.getUTCDate() + offset); return day.toISOString().slice(0,10); };
+    const chooseSource = (current, records) => current || records[index % Math.max(1,records.length)]?.id || '';
+    if (activeTool === 'essay-improvement') {
+      const id = chooseSource(essayId, essays); setEssayId(String(id));
+      if (!id) setError('Select an existing essay before running this example. No record IDs are invented.');
+    } else if (activeTool === 'study-planner') {
+      const id = chooseSource(planForm.learning_path_id, paths);
+      setPlanForm({ learning_path_id: String(id), target_date: date([28,42,56][index]) });
+      if (!id) setError('Select an existing learning path before running this example. No record IDs are invented.');
+    } else if (activeTool === 'cohort-analytics') setCohortForm({ start: date([-30,-60,-90][index]), end: date(0) });
+    else if (activeTool === 'teacher-cohort-report') setTeacherForm({ start: date([-14,-28,-42][index]), end: date(0) });
+    else if (activeTool === 'quiz-generation') {
+      const example = educationExamples.Quizzes[index];
+      setQuizForm({ topic: example.title, subject: example.subject, difficulty: example.difficulty.toLowerCase(), num_questions: example.num_questions, source_content: example.source_content });
+    } else setRecForm({ subject: ['Science','Mathematics','History'][index], max_recommendations: [3,5,8][index] });
+  };
 
   const run = async (path, body) => {
     setLoading(true); setError(''); setResult(null);
@@ -64,7 +99,7 @@ function AITools() {
   };
 
   return (
-    <div className="feature-page">
+    <div className="feature-page" data-full-ai-workspace="AITools"><NativeEducationPresets onApply={applyExample} disabled={loading} />
       <div className="page-header" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
           <h1><FiZap /> AI Tools</h1>
@@ -282,9 +317,7 @@ function AITools() {
           {result && (
             <div style={{ marginTop: 20 }}>
               <h3 style={{ marginBottom: 8 }}>Result</h3>
-              <pre style={{ background: '#0f172a', color: '#e2e8f0', padding: '1rem', borderRadius: 8, fontSize: 12, overflow: 'auto', maxHeight: 500 }}>
-                {JSON.stringify(result, null, 2)}
-              </pre>
+              <FormattedAIReport response={result} />
             </div>
           )}
         </div>

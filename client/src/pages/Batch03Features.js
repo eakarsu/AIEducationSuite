@@ -1,9 +1,10 @@
 // === Batch 03 Gaps & Frontend Mounts ===
 // Auto-generated frontend page (lean v0). Wires Custom Feature Suggestions
 // and Gap endpoints (AI counterparts + non-AI features) to backend routes.
+import FormattedAIReport from '../components/FormattedAIReport';
 import React, { useState } from 'react';
 
-const API_BASE = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || 'http://localhost:4000/api';
+const API_BASE = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || '/api';
 
 const FEATURES = [
   { kind: 'cfs', slug: 'cf-agentic-tutor', label: 'Agentic tutor', desc: 'Student chat → on-demand explanations, practice, quizzes', endpoint: '/cf-agentic-tutor' },
@@ -53,7 +54,7 @@ export default function Batch03Features() {
   ];
 
   const applySampleRequest = (value) => {
-    setInput(value);
+    setInput(JSON.stringify({ input: `${current.label}: ${value}`, context: 'Fictional educational example; no student identities or record references.', goal: 'Explain concepts, identify learning needs, and propose a practical next step.', audience: 'Teacher and learner', constraints: 'Use clear language and distinguish assumptions from available evidence.', output_format: 'JSON with summary, practice activities, and follow-up questions' }, null, 2));
     setError(null);
   };
   const current = FEATURES.find(f => f.slug === active) || FEATURES[0];
@@ -123,9 +124,7 @@ export default function Batch03Features() {
           </div>
           {error && (<div style={{ marginTop: 12, padding: 10, background: '#fee2e2', color: '#991b1b', borderRadius: 4, fontSize: 13 }}>{error}</div>)}
           {results[current.slug] && (
-            <pre style={{ marginTop: 12, padding: 10, background: '#0b1020', color: '#cbd5e1', borderRadius: 4, overflow: 'auto', maxHeight: 360, fontSize: 12 }}>
-              {typeof results[current.slug] === 'string' ? results[current.slug] : JSON.stringify(results[current.slug], null, 2)}
-            </pre>
+            <FormattedAIReport response={results[current.slug]} title={current.label} />
           )}
         </div>
       )}

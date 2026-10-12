@@ -1,5 +1,6 @@
+import NativeEducationPresets, { educationExamples } from '../components/NativeEducationPresets';
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiFileText, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiFileText } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import AIResponseDisplay from '../components/AIResponseDisplay';
@@ -123,21 +124,7 @@ function Essays() {
     }
   };
 
-  const loadSampleData = () => {
-    setFormData({
-      title: 'The Impact of Artificial Intelligence on Modern Education',
-      content: `Artificial intelligence has rapidly transformed numerous sectors of society, and education is no exception. Over the past decade, AI-powered tools have begun reshaping how students learn, how teachers teach, and how educational institutions operate. This essay explores the multifaceted impact of AI on modern education, examining both its promising benefits and potential challenges.
-
-One of the most significant contributions of AI to education is the ability to personalize learning experiences. Traditional classroom settings often follow a one-size-fits-all approach, where students with varying abilities and learning styles receive the same instruction. AI-powered adaptive learning platforms, such as Khan Academy and Duolingo, analyze individual student performance in real time and adjust the difficulty and type of content accordingly. This personalization ensures that advanced students are challenged while struggling students receive additional support, ultimately leading to more effective learning outcomes.
-
-Furthermore, AI has revolutionized assessment and feedback mechanisms. Automated grading systems can evaluate multiple-choice tests, essays, and even complex mathematical proofs with remarkable accuracy. These systems provide instant feedback to students, allowing them to identify and address their weaknesses immediately rather than waiting days or weeks for teacher evaluations. For educators, this automation frees up valuable time that can be redirected toward more meaningful interactions with students.
-
-However, the integration of AI in education is not without its challenges. Privacy concerns arise as AI systems collect vast amounts of student data to function effectively. Questions about data security, consent, and the potential misuse of personal information remain largely unresolved. Additionally, there is a growing concern about the digital divide, as students from underprivileged backgrounds may lack access to the technology required to benefit from AI-enhanced education.
-
-In conclusion, while AI holds tremendous potential to improve educational outcomes through personalization, efficient assessment, and innovative teaching tools, it is crucial that stakeholders address the accompanying ethical and accessibility challenges. The future of AI in education depends on our ability to harness its power responsibly while ensuring equitable access for all learners.`
-    });
-    setError('');
-  };
+  const loadSampleData = (index) => { setFormData({ ...educationExamples.Essays[index] }); setError(''); };
 
   const openCreateModal = () => {
     setEditingEssay(null);
@@ -370,13 +357,7 @@ In conclusion, while AI holds tremendous potential to improve educational outcom
         <form onSubmit={editingEssay ? handleUpdate : handleCreate}>
           {error && <div className="alert alert-error">{error}</div>}
 
-          {!editingEssay && (
-            <div style={{ marginBottom: '1rem' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={loadSampleData}>
-                <FiDownload /> Load Sample Data
-              </button>
-            </div>
-          )}
+          <NativeEducationPresets onApply={loadSampleData} disabled={actionLoading} />
 
           <div className="form-group">
             <label className="form-label">Essay Title</label>

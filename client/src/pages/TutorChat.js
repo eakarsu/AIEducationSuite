@@ -1,3 +1,6 @@
+
+import NativeEducationPresets from '../components/NativeEducationPresets';
+import FormattedAIReport from '../components/FormattedAIReport';
 import React, { useState, useEffect, useRef } from 'react';
 
 /**
@@ -5,6 +8,8 @@ import React, { useState, useEffect, useRef } from 'react';
  * Backend: POST /api/ai/tutor-chat — uses last 6 messages as context.
  */
 export default function TutorChat() {
+
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [conversationId, setConversationId] = useState(null);
@@ -67,7 +72,10 @@ export default function TutorChat() {
   const startNew = () => { setMessages([]); setConversationId(null); };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', padding: 16, gap: 16 }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', padding: 16, gap: 16 }} data-full-ai-workspace="TutorChat"><NativeEducationPresets disabled={loading} onApply={(index) => {
+        setSubject(['Math','Science','Writing'][index]);
+        setInput(['Explain equivalent fractions with a worked example, then give me two practice questions and feedback criteria.', 'Explain how plants use sunlight, water, and carbon dioxide. Include a diagram description, a misconception check, and three practice questions.', 'Help me improve an argumentative introduction about school gardens. Show a sample claim, supporting reasons, and a revision checklist.'][index]);
+      }} />
       <div style={{ width: 260, overflowY: 'auto', borderRight: '1px solid #e5e7eb', paddingRight: 12 }}>
         <button onClick={startNew} style={{ width: '100%', padding: 8, marginBottom: 12, background: '#4F46E5', color: 'white', border: 'none', borderRadius: 6 }}>+ New Chat</button>
         <h3 style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>Past conversations</h3>
@@ -114,7 +122,7 @@ export default function TutorChat() {
               border: '1px solid ' + (m.role === 'user' ? '#bfdbfe' : '#e5e7eb')
             }}>
               <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>{m.role.toUpperCase()}</div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{m.content}</div>
+              {m.role === 'assistant' ? <FormattedAIReport response={m.content} title="Tutor response" /> : <div style={{ whiteSpace: 'pre-wrap' }}>{m.content}</div>}
             </div>
           ))}
           {loading && <div style={{ color: '#6b7280', fontStyle: 'italic' }}>Tutor is typing...</div>}

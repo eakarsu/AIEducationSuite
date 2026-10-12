@@ -1,5 +1,6 @@
+import NativeEducationPresets, { educationExamples } from '../components/NativeEducationPresets';
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiGlobe, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiGlobe } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import AIResponseDisplay from '../components/AIResponseDisplay';
@@ -127,16 +128,7 @@ function LanguageImmersion() {
     }
   };
 
-  const loadSampleData = () => {
-    setFormData({
-      target_language: 'Spanish',
-      native_language: 'English',
-      proficiency_level: 'Intermediate (B1)',
-      topic: 'Ordering food at a restaurant and discussing local cuisine',
-      session_type: 'conversation'
-    });
-    setError('');
-  };
+  const loadSampleData = (index) => { setFormData({ ...educationExamples.LanguageImmersion[index] }); setError(''); };
 
   const openCreateModal = () => {
     setEditingSession(null);
@@ -434,13 +426,7 @@ function LanguageImmersion() {
         <form onSubmit={editingSession ? handleUpdate : handleCreate}>
           {error && <div className="alert alert-error">{error}</div>}
 
-          {!editingSession && (
-            <div style={{ marginBottom: '1rem' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={loadSampleData}>
-                <FiDownload /> Load Sample Data
-              </button>
-            </div>
-          )}
+          <NativeEducationPresets onApply={loadSampleData} disabled={actionLoading} />
 
           <div className="form-group">
             <label className="form-label">Target Language</label>

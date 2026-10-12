@@ -1,5 +1,6 @@
+import NativeEducationPresets, { educationExamples } from '../components/NativeEducationPresets';
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiBook, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiBook } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import AIResponseDisplay from '../components/AIResponseDisplay';
@@ -103,17 +104,7 @@ function Reading() {
     }
   };
 
-  const loadSampleData = () => {
-    setFormData({
-      title: 'Scientific Article: Quantum Computing Basics',
-      content: `Quantum computing represents a fundamental paradigm shift in computational methodology, leveraging the principles of quantum mechanics to process information in ways that classical computers cannot. Unlike classical bits, which exist in a definitive state of either 0 or 1, quantum bits, or qubits, can exist in a superposition of both states simultaneously. This property, combined with quantum entanglement and interference, enables quantum computers to perform certain calculations exponentially faster than their classical counterparts.
-
-The theoretical foundation of quantum computing was established by physicist Richard Feynman in 1982, who proposed that quantum systems could be efficiently simulated only by other quantum systems. Subsequently, Peter Shor developed an algorithm in 1994 demonstrating that a sufficiently powerful quantum computer could factor large integers in polynomial time, potentially rendering current cryptographic systems obsolete.
-
-Contemporary quantum processors utilize various physical implementations, including superconducting circuits, trapped ions, and photonic systems. Each approach presents distinct advantages and engineering challenges related to coherence times, gate fidelities, and scalability. The phenomenon of decoherence, wherein quantum states lose their quantum properties through interaction with the environment, remains one of the most significant obstacles to building practical, large-scale quantum computers.`
-    });
-    setError('');
-  };
+  const loadSampleData = (index) => { setFormData({ ...educationExamples.Reading[index] }); setError(''); };
 
   const openCreateModal = () => {
     setEditingAnalysis(null);
@@ -309,13 +300,7 @@ Contemporary quantum processors utilize various physical implementations, includ
         <form onSubmit={editingAnalysis ? handleUpdate : handleCreate}>
           {error && <div className="alert alert-error">{error}</div>}
 
-          {!editingAnalysis && (
-            <div style={{ marginBottom: '1rem' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={loadSampleData}>
-                <FiDownload /> Load Sample Data
-              </button>
-            </div>
-          )}
+          <NativeEducationPresets onApply={loadSampleData} disabled={actionLoading} />
 
           <div className="form-group">
             <label className="form-label">Title / Description</label>

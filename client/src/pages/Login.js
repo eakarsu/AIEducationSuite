@@ -8,6 +8,7 @@ function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,14 +26,17 @@ function Login({ onLogin }) {
   };
 
   const fillDemoCredentials = async () => {
+    if (loading || demoLoading) return;
+    setDemoLoading(true);
     try {
       const credentials = await api.getDemoCredentials();
+      if (!credentials.email || !credentials.password) throw new Error('Demo credentials unavailable');
       setEmail(credentials.email);
       setPassword(credentials.password);
       setError('');
     } catch (err) {
-      setError('Failed to get demo credentials');
-    }
+      setError(err.message || 'Failed to get demo credentials');
+    } finally { setDemoLoading(false); }
   };
 
   return (
@@ -76,8 +80,8 @@ function Login({ onLogin }) {
 
             <div className="login-divider"><span>or</span></div>
 
-            <button type="button" className="btn btn-secondary btn-lg login-demo" onClick={fillDemoCredentials}>
-              Auto Fill Demo Credentials
+            <button type="button" className="btn btn-secondary btn-lg login-demo" onClick={fillDemoCredentials} disabled={loading || demoLoading}>
+              {demoLoading ? 'Loading demo credentials...' : 'Fill Demo Credentials'}
             </button>
           </form>
 

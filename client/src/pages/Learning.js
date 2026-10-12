@@ -1,5 +1,6 @@
+import NativeEducationPresets, { educationExamples } from '../components/NativeEducationPresets';
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiTrendingUp, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiTrendingUp } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import AIResponseDisplay from '../components/AIResponseDisplay';
@@ -112,16 +113,7 @@ function Learning() {
     }
   };
 
-  const loadSampleData = () => {
-    setFormData({
-      title: 'Full Stack Web Development Mastery',
-      subject: 'Programming',
-      current_level: 'Beginner',
-      target_level: 'Advanced',
-      goals: 'Learn HTML, CSS, JavaScript, React, Node.js, and databases to build complete web applications from scratch. Goal is to be able to build and deploy production-ready full-stack applications independently.'
-    });
-    setError('');
-  };
+  const loadSampleData = (index) => { setFormData({ ...educationExamples.Learning[index] }); setError(''); };
 
   const openCreateModal = () => {
     setEditingPath(null);
@@ -311,13 +303,7 @@ function Learning() {
         <form onSubmit={editingPath ? handleUpdate : handleCreate}>
           {error && <div className="alert alert-error">{error}</div>}
 
-          {!editingPath && (
-            <div style={{ marginBottom: '1rem' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={loadSampleData}>
-                <FiDownload /> Load Sample Data
-              </button>
-            </div>
-          )}
+          <NativeEducationPresets onApply={loadSampleData} disabled={actionLoading} />
 
           <div className="form-group">
             <label className="form-label">Learning Path Title</label>

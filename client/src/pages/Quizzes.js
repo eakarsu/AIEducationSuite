@@ -1,5 +1,6 @@
+import NativeEducationPresets, { educationExamples } from '../components/NativeEducationPresets';
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiHelpCircle, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiArrowLeft, FiHelpCircle } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import AIResponseDisplay from '../components/AIResponseDisplay';
@@ -112,16 +113,7 @@ function Quizzes() {
     }
   };
 
-  const loadSampleData = () => {
-    setFormData({
-      title: 'World War II: Key Events and Turning Points',
-      subject: 'History',
-      difficulty: 'Medium',
-      num_questions: 10,
-      source_content: 'World War II lasted from 1939 to 1945 and involved most of the world\'s nations. Key events include the invasion of Poland, the Battle of Britain, the attack on Pearl Harbor, D-Day, the Battle of Stalingrad, and the atomic bombings of Hiroshima and Nagasaki. The war resulted in an estimated 70-85 million deaths and led to the creation of the United Nations.'
-    });
-    setError('');
-  };
+  const loadSampleData = (index) => { setFormData({ ...educationExamples.Quizzes[index] }); setError(''); };
 
   const openCreateModal = () => {
     setEditingQuiz(null);
@@ -310,13 +302,7 @@ function Quizzes() {
         <form onSubmit={editingQuiz ? handleUpdate : handleCreate}>
           {error && <div className="alert alert-error">{error}</div>}
 
-          {!editingQuiz && (
-            <div style={{ marginBottom: '1rem' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={loadSampleData}>
-                <FiDownload /> Load Sample Data
-              </button>
-            </div>
-          )}
+          <NativeEducationPresets onApply={loadSampleData} disabled={actionLoading} />
 
           <div className="form-group">
             <label className="form-label">Quiz Title</label>
