@@ -5,7 +5,7 @@ describe('Auth Routes', () => {
 
   beforeAll(() => {
     process.env.NODE_ENV = 'test';
-    process.env.JWT_SECRET = 'test_secret';
+    process.env.JWT_SECRET = 'test-secret-with-at-least-32-characters';
     app = require('../index');
   });
 
@@ -23,11 +23,10 @@ describe('Auth Routes', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/auth/demo-credentials should return credentials', async () => {
+  it('GET /api/auth/demo-credentials is disabled (no default accounts)', async () => {
     const res = await request(app).get('/api/auth/demo-credentials');
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('email');
-    expect(res.body).toHaveProperty('password');
+    expect(res.statusCode).toBe(404);
+    expect(res.body).not.toHaveProperty('password');
   });
 
   it('GET /api/auth/verify without token should return 401', async () => {

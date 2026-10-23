@@ -51,14 +51,11 @@ describe('AI education controls', () => {
     expect(container.textContent).toContain('Discuss results');
   });
 
-  it('fills demo credentials from the existing endpoint and leaves sign-in explicit', async () => {
+  it('offers no demo-credential shortcut; sign-in stays explicit', async () => {
     const onLogin = jest.fn();
-    api.getDemoCredentials.mockResolvedValue({ email: 'demo@aieducation.com', password: 'demo123456' });
     render(<MemoryRouter><Login onLogin={onLogin} /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: 'Fill Demo Credentials' }));
-    await waitFor(() => expect(screen.getByPlaceholderText('Enter your email').value).toBe('demo@aieducation.com'));
-    expect(screen.getByPlaceholderText('Enter your password').value).toBe('demo123456');
-    expect(api.getDemoCredentials).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Fill Demo Credentials' })).toBeNull();
+    expect(api.getDemoCredentials).not.toHaveBeenCalled();
     expect(api.login).not.toHaveBeenCalled();
     expect(onLogin).not.toHaveBeenCalled();
   });

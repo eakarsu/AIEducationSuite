@@ -85,6 +85,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/feature-pack', require('./routes/featurePack33d'));
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/contact', contactRoutes);

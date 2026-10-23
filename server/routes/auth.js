@@ -1,6 +1,10 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be set to at least 32 random characters');
+}
 const crypto = require('crypto');
 const pool = require('../db/config');
 const authMiddleware = require('../middleware/auth');
@@ -42,7 +46,7 @@ router.post('/login', async (req, res) => {
     // Access token (15min)
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'your_super_secret_jwt_key',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -103,7 +107,7 @@ router.post('/register', async (req, res) => {
     const user = result.rows[0];
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'your_super_secret_jwt_key',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -145,7 +149,7 @@ router.post('/refresh', async (req, res) => {
     const row = result.rows[0];
     const token = jwt.sign(
       { userId: row.user_id, email: row.email, role: row.role },
-      process.env.JWT_SECRET || 'your_super_secret_jwt_key',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -174,12 +178,9 @@ router.post('/logout', async (req, res) => {
   }
 });
 
-// Get demo credentials
+// Demo credential disclosure is disabled: no default accounts exist.
 router.get('/demo-credentials', (req, res) => {
-  res.json({
-    email: process.env.DEMO_EMAIL || 'demo@aieducation.com',
-    password: process.env.DEMO_PASSWORD || 'demo123456'
-  });
+  res.status(404).json({ error: 'Credential discovery is disabled' });
 });
 
 // Verify token
@@ -191,7 +192,7 @@ router.get('/verify', async (req, res) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_super_secret_jwt_key');
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     const result = await pool.query(
       'SELECT id, email, name, role FROM users WHERE id = $1',

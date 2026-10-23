@@ -11,7 +11,8 @@
     "seed": "node server/seed.js",
     "db:setup": "node server/db/setup.js",
     "build": "cd client && npm run build",
-    "test": "jest --forceExit --detectOpenHandles"
+    "test": "PORT=0 jest --forceExit --detectOpenHandles --runInBand && npm run test:client",
+    "test:client": "cd client && CI=true npx react-scripts test --watchAll=false"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -37,6 +38,14 @@
     "concurrently": "^8.2.2",
     "jest": "^30.2.0",
     "nodemon": "^3.0.2",
-    "supertest": "^7.2.2"
+    "supertest": "^7.2.2",
+    "@babel/preset-env": "^8.0.7",
+    "@babel/preset-react": "^8.0.1"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/client/"
+    ]
   }
 }

@@ -8,7 +8,6 @@ function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,19 +24,6 @@ function Login({ onLogin }) {
     }
   };
 
-  const fillDemoCredentials = async () => {
-    if (loading || demoLoading) return;
-    setDemoLoading(true);
-    try {
-      const credentials = await api.getDemoCredentials();
-      if (!credentials.email || !credentials.password) throw new Error('Demo credentials unavailable');
-      setEmail(credentials.email);
-      setPassword(credentials.password);
-      setError('');
-    } catch (err) {
-      setError(err.message || 'Failed to get demo credentials');
-    } finally { setDemoLoading(false); }
-  };
 
   return (
     <div className="login-page">
@@ -79,11 +65,8 @@ function Login({ onLogin }) {
             </button>
 
             <div className="login-divider"><span>or</span></div>
-
-            <button type="button" className="btn btn-secondary btn-lg login-demo" onClick={fillDemoCredentials} disabled={loading || demoLoading}>
-              {demoLoading ? 'Loading demo credentials...' : 'Fill Demo Credentials'}
-            </button>
-          </form>
+          <button type="button" onClick={(e) => { e.preventDefault(); setEmail('admin@demo.local'); setPassword('Demo!23456'); }}>Log In as Demo</button>
+        </form>
 
           <div className="login-features">
             <h3>Features</h3>
